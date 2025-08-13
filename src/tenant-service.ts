@@ -27,6 +27,10 @@ export class TenantService {
         }
     }
 
+    /**
+     * Add a tenant to the system, including its children recursively
+     * Throws an error if a cycle is detected or if the tenant already exists
+     */
     private async addTenants(tenant: Tenant, parent?: Tenant): Promise<void> {
         const existingTenant = await this.repository.getTenant(tenant.id);
         if (existingTenant) {
