@@ -1,0 +1,20 @@
+{
+  "name": "multi-tenancy-ts",
+  "version": "0.0.2",
+  "description": "A library that manages multi tenancy in your app, with focus on security, maintainability and performance",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha -r ts-node/register src/**/*.test.ts"
+  },
+  "repository": "https://github.com/KansoTech/multi-tenancy-ts.git",
+  "author": "Hassan Kanso <hassankanso1095@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/chai": "^5.2.2",
+    "@types/mocha": "^10.0.10",
+    "chai": "^5.2.1",
+    "mocha": "^11.7.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  }
+}
