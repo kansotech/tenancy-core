@@ -1,6 +1,6 @@
 {
   "name": "tenancy-core",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A library that manages multi tenancy in your app, with focus on security, maintainability and performance",
   "main": "index.js",
   "scripts": {
