@@ -1,12 +1,12 @@
 {
   "name": "tenancy-core",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A library that manages multi tenancy in your app, with focus on security, maintainability and performance",
   "main": "index.js",
   "scripts": {
     "test": "mocha -r ts-node/register src/**/*.test.ts"
   },
-  "repository": "https://github.com/KansoTech/multi-tenancy-ts.git",
+  "repository": "https://github.com/KansoTech/tenancy-core.git",
   "author": "Hassan Kanso <hassankanso1095@gmail.com>",
   "license": "MIT",
   "devDependencies": {
