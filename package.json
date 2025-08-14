@@ -1,6 +1,6 @@
 {
   "name": "@kansotech/core",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "A library that manages multi tenancy in your app, with focus on security, maintainability and performance",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
