@@ -1,9 +1,12 @@
 {
   "name": "@multitenancy/core",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A library that manages multi tenancy in your app, with focus on security, maintainability and performance",
-  "main": "dist/index",
-  "types": "dist/index",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "test": "mocha -r ts-node/register src/**/*.test.ts",
     "build": "tsc"
