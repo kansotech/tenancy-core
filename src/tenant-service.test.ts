@@ -1,7 +1,9 @@
 import { expect } from "chai";
 import { describe, it, beforeEach } from "mocha";
-import { TenantService } from "./tenant-service";
 import { GlobalTenant, Role, Resource } from "./types";
+import { TenantBuilder } from "./builder";
+import { InMemoryTenantRepository } from "./in-memory-tenant-repository";
+import { Authorization } from "./authorize";
 
 function createTestTenantTree(): GlobalTenant {
     return {
@@ -28,42 +30,45 @@ function createTestTenantTree(): GlobalTenant {
 }
 
 describe("TenantService", () => {
-    let service: TenantService;
+    let service: TenantBuilder;
+    let authorizer: Authorization;
     let globalTenant: GlobalTenant;
     let role: Role;
     let resource: Resource;
 
     beforeEach(async () => {
-        service = new TenantService();
+        const repo = new InMemoryTenantRepository();
+        service = new TenantBuilder(repo);
+        authorizer = new Authorization(repo);
         globalTenant = createTestTenantTree();
-        await service.initialize(globalTenant);
-        role = { id: "role1", name: "Role 1", permissions: ["read", "write"] };
+        await service.createTenantTree(globalTenant);
+        role = { id: "role1", name: "Role 1", permissions: ["read", "write"], description: '' };
         await service.addRole(role);
-        resource = { id: "res1" };
-        await service.addResource({ resource, resourceType: "doc", tenantId: "tenant1" });
+        resource = { id: "res1", type: "doc" };
+        await service.addResource({ resource, tenantId: "tenant1" });
     });
 
     it("should authorize access when permissions match", async () => {
-        await service.grantAccess("acc1", "res1", "role1");
-        const result = await service.authorize("acc1", "res1", ["read"]);
+        await authorizer.grantAccess({ accountId: "acc1", resourceId: "res1", roleId: "role1" });
+        const result = await authorizer.authorize({ accountId: "acc1", resourceId: "res1", requiredPermission: "read" });
         expect(result).to.be.true;
     });
 
     it("should not authorize access when permissions do not match", async () => {
-        await service.grantAccess("acc1", "res1", "role1");
-        const result = await service.authorize("acc1", "res1", ["admin"]);
+        await authorizer.grantAccess({ accountId: "acc1", resourceId: "res1", roleId: "role1" });
+        const result = await authorizer.authorize({ accountId: "acc1", resourceId: "res1", requiredPermission: "admin" });
         expect(result).to.be.false;
     });
 
     it("should revoke access", async () => {
-        await service.grantAccess("acc1", "res1", "role1");
-        await service.revokeAccess("acc1", "res1");
-        const result = await service.authorize("acc1", "res1", ["read"]);
+        await authorizer.grantAccess({ accountId: "acc1", resourceId: "res1", roleId: "role1" });
+        await authorizer.revokeAccess({ accountId: "acc1", resourceId: "res1" });
+        const result = await authorizer.authorize({ accountId: "acc1", resourceId: "res1", requiredPermission: "read" });
         expect(result).to.be.false;
     });
 
     it("should return resources for account", async () => {
-        await service.grantAccess("acc1", "res1", "role1");
+        await authorizer.grantAccess({ accountId: "acc1", resourceId: "res1", roleId: "role1" });
         const resources = await service.getMyResources({ accountId: "acc1", resourceType: "doc" });
         expect(resources).to.have.lengthOf(1);
         expect(resources[0].id).to.equal("res1");
@@ -76,31 +81,28 @@ describe("TenantService", () => {
 
     it("should authorize user with global tenant access on subtenant resource through hierarchy", async () => {
         // Create a role with global permissions
-        const globalRole: Role = { 
-            id: "global-role", 
-            name: "Global Admin", 
-            permissions: ["admin", "global-manage"] 
+        const globalRole: Role = {
+            id: "global-role",
+            name: "Global Admin",
+            permissions: ["admin", "global-manage"],
+            description: null
         };
         await service.addRole(globalRole);
 
         // Create a resource in a sub-tenant (tenant2)
-        const subTenantResource: Resource = { id: "subtenant-res" };
-        await service.addResource({ 
-            resource: subTenantResource, 
-            resourceType: "doc", 
-            tenantId: "tenant2" 
-        });
+        const subTenantResource: Resource = { id: "subtenant-res", type: "doc" };
+        await service.addResource({ resource: subTenantResource, tenantId: "tenant2" });
 
         // Grant user access to the global tenant with global permissions
-        await service.grantAccess("global-user", "global", "global-role");
+        await authorizer.grantAccess({ accountId: "global-user", resourceId: "global", roleId: "global-role" });
 
         service.printTenantsTree(globalTenant);
         // User should be able to authorize on subtenant resource with global permissions
-        const resultWithGlobalPermission = await service.authorize("global-user", "subtenant-res", ["admin"]);
+        const resultWithGlobalPermission = await authorizer.authorize({ accountId: "global-user", resourceId: "subtenant-res", requiredPermission: "admin" });
         expect(resultWithGlobalPermission).to.be.true;
 
         // But should NOT be able to authorize with permissions not in their role
-        const resultWithoutPermission = await service.authorize("global-user", "subtenant-res", ["delete"]);
+        const resultWithoutPermission = await authorizer.authorize({ accountId: "global-user", resourceId: "subtenant-res", requiredPermission: "delete" });
         expect(resultWithoutPermission).to.be.false;
     });
 
@@ -128,14 +130,15 @@ describe("TenantService", () => {
             ],
         };
 
-        const newService = new TenantService();
-        await newService.initialize(hierarchyTenant);
+        const repo = new InMemoryTenantRepository();
+        const newService = new TenantBuilder(repo);
+        await newService.createTenantTree(hierarchyTenant);
         newService.printTenantsTree(hierarchyTenant);
 
         // Verify tenants exist and have proper parent-child relationships
-        const corpTenant = await newService.getTenant("corp");
-        const divisionTenant = await newService.getTenant("division");
-        const teamTenant = await newService.getTenant("team");
+        const corpTenant = await repo.getTenant({ id: "corp" });
+        const divisionTenant = await repo.getTenant({ id: "division" });
+        const teamTenant = await repo.getTenant({ id: "team" });
 
         expect(corpTenant).to.exist;
         expect(divisionTenant).to.exist;
@@ -151,5 +154,5 @@ describe("TenantService", () => {
         expect(teamTenant?.name).to.equal("Team");
     });
 
-    
+
 });

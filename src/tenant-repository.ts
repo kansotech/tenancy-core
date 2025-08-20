@@ -1,33 +1,23 @@
-import { Tenant, Role, Resource, ResourceOwnership, ResourceAccess, ResourceType } from "./types";
+import { prisma } from "./prisma";
+import { Tenant, ResourceOwnership, ResourceAccess, ResourceType, AccountId, ResourceId, TenantAccess, TenantId, RoleId, Role, Resource } from "./types";
 
 export interface TenantRepository {
-    // Tenant operations
-    addTenant(tenant: Tenant): Promise<boolean>;
-    addTenants(tenants: Tenant[]): Promise<boolean>;
-    getTenant(tenantId: string): Promise<Tenant | undefined>;
-    removeTenant(tenantId: string): Promise<boolean>;
 
-    // Role operations
-    addRole(role: Role): Promise<boolean>;
-    addRoles(roles: Role[]): Promise<boolean>;
-    getRole(roleId: string): Promise<Role | undefined>;
-    removeRole(roleId: string): Promise<boolean>;
+    createTenant({ tenant }: { tenant: Tenant }): Promise<Tenant | null>;
+    getTenant({ id }: { id: TenantId }): Promise<Tenant | null>;
+    getTenantAccess({ accountId, tenantId }: { accountId: AccountId, tenantId: string }): Promise<TenantAccess | null>;
 
-    // Resource operations
-    addResource(resource: Resource, resourceType: ResourceType): Promise<boolean>;
-    getResource(resourceId: string | number, resourceType: ResourceType): Promise<Resource | undefined>;
-    getResources(resourceType: ResourceType): Promise<Resource[]>;
+    createResource({ resource }: { resource: Resource }): Promise<Resource | null>;
 
-    // Resource ownership operations
-    addResourceOwnership(ownership: ResourceOwnership): Promise<boolean>;
-    getResourceOwnership(resourceId: string | number): Promise<ResourceOwnership | undefined>;
-    changeResourceOwnership(resourceId: string | number, newTenantId: string): Promise<boolean>;
+    createResourceOwnership({ resourceOwnership }: { resourceOwnership: ResourceOwnership }): Promise<ResourceOwnership | null>;
+    changeOwnership({ resourceId, resourceType, newOwnerId }: { resourceId: ResourceId, resourceType: ResourceType, newOwnerId: TenantId }): Promise<ResourceOwnership | null>;
+    getResourceOwnership({ resourceId, resourceType }: { resourceId: ResourceId, resourceType: ResourceType }): Promise<ResourceOwnership | null>;
 
-    // Resource access operations
-    addResourceAccess(access: ResourceAccess): Promise<boolean>;
-    getResourceAccess(accountId: string): Promise<ResourceAccess[]>;
-    removeResourceAccess(accountId: string, resourceId: string | number): Promise<boolean>;
-    changeResourceAccessRole(accountId: string, resourceId: string | number, newRoleId: string): Promise<boolean>;
+    createResourceAccess({ accountId, resourceId, roleId, resourceType }: { accountId: AccountId, resourceId: ResourceId, roleId: RoleId, resourceType: ResourceType }): Promise<ResourceAccess | null>;
+    deleteResourceAccess({ accountId, resourceId, resourceType }: { accountId: AccountId, resourceId: ResourceId, resourceType: ResourceType }): Promise<ResourceAccess | null>;
+    getResourceAccess({ accountId, resourceId, resourceType }: { accountId: AccountId, resourceId: ResourceId, resourceType: ResourceType }): Promise<ResourceAccess | null>;
+
+    createRole({ role }: { role: Role }): Promise<Role | null>;
 
 
 }

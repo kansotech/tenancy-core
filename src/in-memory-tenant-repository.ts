@@ -1,4 +1,4 @@
-import { Tenant, Role, Resource, ResourceOwnership, ResourceAccess, ResourceType } from "./types";
+import { Tenant, Role, Resource, ResourceOwnership, ResourceAccess, ResourceType, ResourceId, AccountId, RoleId, TenantId, TenantAccess } from "./types";
 import { TenantRepository } from "./tenant-repository";
 
 export class InMemoryTenantRepository implements TenantRepository {
@@ -23,35 +23,45 @@ export class InMemoryTenantRepository implements TenantRepository {
         return true;
     }
 
-    async addRoles(roles: Role[]): Promise<boolean> {
-        for (const role of roles) {
-            if (this.roles.has(role.id)) {
-                throw new Error(`Role with id ${role.id} already exists.`);
-            }
-        }
+    getTenantAccess({ accountId, tenantId }: { accountId: AccountId; tenantId: string; }): Promise<TenantAccess | null> {
+        throw new Error("Method not implemented.");
+    }
+    createResourceOwnership({ resourceOwnership }: { resourceOwnership: ResourceOwnership; }): Promise<ResourceOwnership | null> {
+        throw new Error("Method not implemented.");
+    }
+    changeOwnership({ resourceId, resourceType, newOwnerId }: { resourceId: ResourceId; resourceType: ResourceType; newOwnerId: TenantId; }): Promise<ResourceOwnership | null> {
+        throw new Error("Method not implemented.");
+    }
+    createResourceAccess({ accountId, resourceId, roleId, resourceType }: { accountId: AccountId; resourceId: ResourceId; roleId: RoleId; resourceType: ResourceType; }): Promise<ResourceAccess | null> {
+        throw new Error("Method not implemented.");
+    }
+    deleteResourceAccess({ accountId, resourceId, resourceType }: { accountId: AccountId; resourceId: ResourceId; resourceType: ResourceType; }): Promise<ResourceAccess | null> {
+        throw new Error("Method not implemented.");
+    }
 
-        for (const role of roles) {
-            this.roles.set(role.id, role);
+    async createRole({ role }: { role: Role }): Promise<Role | null> {
+        if (this.roles.has(role.id)) {
+            throw new Error(`Role with id ${role.id} already exists.`);
         }
-
-        return true;
+        this.roles.set(role.id, role);
+        return role;
     }
 
     // Tenant operations
-    async addTenant(tenant: Tenant): Promise<boolean> {
+    async createTenant({ tenant }: { tenant: Tenant }): Promise<Tenant | null> {
         if (this.tenants.has(tenant.id)) {
-            return false;
+            return null;
         }
         this.tenants.set(tenant.id, tenant);
-        return true;
+        return tenant;
     }
 
-    async getTenant(tenantId: string): Promise<Tenant | undefined> {
-        return this.tenants.get(tenantId);
+    async getTenant({ id }: { id: TenantId }): Promise<Tenant | null> {
+        return this.tenants.get(id) || null;
     }
 
-    async removeTenant(tenantId: string): Promise<boolean> {
-        return this.tenants.delete(tenantId);
+    async removeTenant({ id }: { id: TenantId }): Promise<boolean> {
+        return this.tenants.delete(id);
     }
 
     // Role operations
@@ -60,20 +70,20 @@ export class InMemoryTenantRepository implements TenantRepository {
         return true;
     }
 
-    async getRole(roleId: string): Promise<Role | undefined> {
+    async getRole(roleId: RoleId): Promise<Role | undefined> {
         return this.roles.get(roleId);
     }
 
-    async removeRole(roleId: string): Promise<boolean> {
+    async removeRole(roleId: RoleId): Promise<boolean> {
         return this.roles.delete(roleId);
     }
 
     // Resource operations
-    async addResource(resource: Resource, resourceType: ResourceType): Promise<boolean> {
+    async createResource({ resource, resourceType }: { resource: Resource, resourceType: ResourceType }): Promise<Resource | null> {
         const resources = this.resources.get(resourceType) || [];
         resources.push(resource);
         this.resources.set(resourceType, resources);
-        return true;
+        return resource;
     }
 
     // Resource ownership operations
@@ -82,11 +92,11 @@ export class InMemoryTenantRepository implements TenantRepository {
         return true;
     }
 
-    async getResourceOwnership(resourceId: string | number): Promise<ResourceOwnership | undefined> {
-        return this.resourceOwnerships.get(resourceId);
+    async getResourceOwnership({ resourceId }: { resourceId: ResourceId }): Promise<ResourceOwnership | null> {
+        return this.resourceOwnerships.get(resourceId) || null;
     }
 
-    async changeResourceOwnership(resourceId: string | number, newTenantId: string): Promise<boolean> {
+    async changeResourceOwnership({ resourceId, newTenantId }: { resourceId: ResourceId, newTenantId: TenantId }): Promise<boolean> {
         const ownership = this.resourceOwnerships.get(resourceId);
         if (!ownership) {
             return false;
@@ -108,11 +118,12 @@ export class InMemoryTenantRepository implements TenantRepository {
         return true;
     }
 
-    async getResourceAccess(accountId: string): Promise<ResourceAccess[]> {
-        return this.resourceAccesses.get(accountId) || [];
+    async getResourceAccess({ accountId }: { accountId: AccountId }): Promise<ResourceAccess | null> {
+        const accesses = this.resourceAccesses.get(accountId);
+        return accesses ? accesses[0] : null;
     }
 
-    async removeResourceAccess(accountId: string, resourceId: string | number): Promise<boolean> {
+    async removeResourceAccess({ accountId, resourceId }: { accountId: AccountId, resourceId: ResourceId }): Promise<boolean> {
         const accesses = this.resourceAccesses.get(accountId);
         if (!accesses) {
             return false;
@@ -122,7 +133,7 @@ export class InMemoryTenantRepository implements TenantRepository {
         return true;
     }
 
-    async changeResourceAccessRole(accountId: string, resourceId: string | number, newRoleId: string): Promise<boolean> {
+    async changeResourceAccessRole(accountId: AccountId, resourceId: ResourceId, newRoleId: RoleId): Promise<boolean> {
         const accesses = this.resourceAccesses.get(accountId);
         if (!accesses) {
             return false;
@@ -135,8 +146,8 @@ export class InMemoryTenantRepository implements TenantRepository {
         return true;
     }
 
-    async getResource(resourceId: string | number, resourceType: ResourceType): Promise<Resource | undefined> {
-        const resources =  this.resources.get(resourceType);
+    async getResource(resourceId: ResourceId, resourceType: ResourceType): Promise<Resource | undefined> {
+        const resources = this.resources.get(resourceType);
         return resources?.find(resource => resource.id === resourceId);
     }
 
