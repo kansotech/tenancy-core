@@ -5,6 +5,11 @@ import { GlobalTenant, Resource, ResourceOwnership, Role, Tenant, Account } from
 export class TenantBuilder {
     constructor(private repository: TenantRepository) { }
 
+    async createTenant({ id, name, parentId }: { id: string; name: string; parentId?: string }): Promise<void> {
+        const tenant: Tenant = { id, name, parentId };
+        await this.repository.createTenant({ tenant });
+    }
+
     async createTenantTree(globalTenant: GlobalTenant): Promise<void> {
         await this.addTenants(globalTenant);
     }
