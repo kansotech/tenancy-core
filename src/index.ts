@@ -1,4 +1,6 @@
-export { TenantService } from './tenant-service'
+export { TenantBuilder } from './builder'
+export { Authorization } from './authorize'
+export { Printer } from './printer'
 export { TenantRepository } from './tenant-repository'
 export { InMemoryTenantRepository } from './inmemory-repository'
 export * from './types'
