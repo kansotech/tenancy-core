@@ -55,7 +55,7 @@ export interface Account {
 export interface Role {
     id: RoleId;
     name: string | null;
-    description: string | null;
+    description?: string | null;
     permissions: Permission[] | null;
 }
 

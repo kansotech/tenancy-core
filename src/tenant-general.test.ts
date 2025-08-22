@@ -113,7 +113,7 @@ describe("TenantService", () => {
         // SaaS admin should be able to authorize on any subtenant resource with platform permissions
         const resultWithGlobalPermission = await authorizer.authorize({ accountId: "saas-admin", resourceId: subTenantResource.id, resourceType: subTenantResource.type, requiredPermission: "platform-admin" });
         expect(resultWithGlobalPermission).to.be.true;
-        await (new Printer(repo)).printAdvancedGraph();
+
         // But should NOT be able to authorize with permissions not in their role
         const resultWithoutPermission = await authorizer.authorize({ accountId: "saas-admin", resourceId: subTenantResource.id, resourceType: subTenantResource.type, requiredPermission: "cook-food" });
         expect(resultWithoutPermission).to.be.false;

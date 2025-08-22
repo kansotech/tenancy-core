@@ -34,6 +34,7 @@ const repository = new InMemoryTenantRepository();
 // Initialize builder and authorization
 const tenantBuilder = new TenantBuilder(repository);
 const authorization = new Authorization(repository);
+const printer = new Printer(repository);
 ```
 
 ### Creating Tenant Hierarchy
@@ -124,7 +125,7 @@ Get a beautiful overview of your entire tenancy structure:
 
 ```typescript
 // Print comprehensive graph
-await tenantBuilder.printAdvancedGraph();
+await printer.printAdvancedGraph();
 ```
 
 **Output:**
