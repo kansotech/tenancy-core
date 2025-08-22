@@ -1,16 +1,9 @@
 import { TenantRepository } from "./tenant-repository";
-import { GlobalTenant, Resource, ResourceOwnership, ResourceType, Role, Tenant } from "./types";
+import { GlobalTenant, Resource, ResourceOwnership, Role, Tenant, Account } from "./types";
 
 
 export class TenantBuilder {
     constructor(private repository: TenantRepository) { }
-
-    printTenantsTree(tenant: Tenant, level: number = 0): void {
-        console.log(`${"  ".repeat(level)}- ${tenant.name} (ID: ${tenant.id})`);
-        for (const child of tenant.children || []) {
-            this.printTenantsTree(child, level + 1);
-        }
-    }
 
     async createTenantTree(globalTenant: GlobalTenant): Promise<void> {
         await this.addTenants(globalTenant);
@@ -61,4 +54,9 @@ export class TenantBuilder {
         await this.repository.createResourceOwnership({ resourceOwnership });
         return true;
     }
+
+    async addAccount(account: Account): Promise<Account | null> {
+        return this.repository.createAccount({ account });
+    }
+
 }

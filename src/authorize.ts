@@ -1,5 +1,5 @@
 import { TenantRepository } from "./tenant-repository";
-import { AccountId, Permission, ResourceId, ResourceType, Role, RoleId, TenantId, } from "./types";
+import { AccountId, Permission, Resource, ResourceId, ResourceType, RoleId, TenantId, } from "./types";
 
 
 export class Authorization {
@@ -18,7 +18,6 @@ export class Authorization {
 
         // No access found, check higher tenants
         let resourceOwnership = await this.repository.getResourceOwnership({ resourceId, resourceType });
-
         let tenantId = resourceOwnership?.tenantId;
         while (tenantId) {
             //tenant found check if user has access to the tenant
@@ -50,6 +49,20 @@ export class Authorization {
         return resourceAccess;
     }
 
+    async grantTenantAccess(
+        { accountId, tenantId, roleId }: {
+            accountId: AccountId, tenantId: TenantId, roleId: RoleId, resourceType?: ResourceType
+        }
+    ) {
+        const tenantAccess = await this.repository.createTenantAccess({
+            accountId,
+            tenantId,
+            roleId,
+        })
+
+        return tenantAccess;
+    }
+
     async revokeAccess(
         { accountId, resourceId, resourceType }: {
             accountId: AccountId, resourceId: ResourceId, resourceType?: ResourceType
@@ -74,4 +87,7 @@ export class Authorization {
         await this.repository.changeOwnership({ resourceId, resourceType, newOwnerId });
     }
 
+    async getResourcesOf({ accountId, resourceType }: { accountId: AccountId, resourceType?: ResourceType }): Promise<Resource[]> {
+        return this.repository.getResourcesOf({ accountId, resourceType });
+    }
 }
