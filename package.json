@@ -1,6 +1,6 @@
 {
   "name": "@multitenancy/core",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A library that manages multi tenancy in your app, with focus on security, maintainability and performance",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
